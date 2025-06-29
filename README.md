@@ -9,6 +9,13 @@ Requires BSDataPuller mod, you can install it from ModAssistant, or [from GitHub
 Once Beat Saber is running, click the "NyanSaber" button from VNyan plugins menu to connect to BSDataPuller. Click it again to abort or disconnect. 
 Alternatively use the connection control triggers documented below:  
 
+## Network configuration
+After first use, NyanSaber.cfg will appear in your VNyan profile directory (default: C:\Users\You\AppData\LocalLow\Suvidriel\VNyan)  
+```URL``` - URL for BSDataPuller **without the MapData end** (Default: "ws://127.0.0.1:2946/BSDataPuller")  
+```RetryInterval``` - How long to wait between retries in milliseconds (default: 1000, i.e. 1 second)  
+```MaxRetries"``` - Number of retry attempts (default: 5)
+```RetryOnDisconnect``` - Auto reconnect if disconnected from Beat Saber (default: false)
+
 ## Triggers generated while running
 ```_lum_bs_songstart```  
 ```_lum_bs_songend```  
