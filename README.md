@@ -25,10 +25,10 @@ text2 - Song colour information as JSON (see the JSON values section below)
 text3 - Other song information as JSON  
 
 ## Connection status triggers
-```_lum_bs_connected``` - Called upon successful connection to BSDataPuller
-```_lum_bs_disconnected``` - Called when disconnected. Num1=0 - Disconnection was requested. Num1=1 - Disconnected involuntarily
-```_lum_bs_connectfailed``` - Could not connect to BSDataPuller
-```_lum_bs_connectaborted``` - Disconnection was requested before connection was successful
+```_lum_bs_connected``` - Called upon successful connection to BSDataPuller  
+```_lum_bs_disconnected``` - Called when disconnected. Num1=0 - Disconnection was requested. Num1=1 - Disconnected involuntarily  
+```_lum_bs_connectfailed``` - Could not connect to BSDataPuller  
+```_lum_bs_connectaborted``` - Disconnection was requested before connection was successful  
 
 ## Triggers to control connection
 ```_lum_bs_connect``` - Connect to BSDataPuller  
@@ -57,18 +57,22 @@ environment0boost
 environment1boost  
 
 ### Other song information
-songname
-songsubname - The mix of the song? (not actually sure what this is for yet)
-songauthor - Artist name
-mappers - Comma separated list of mappers
-lighters - Comma separated list of lighters
+songname  
+songsubname - The mix of the song? (not actually sure what this is for yet)  
+songauthor - Artist name  
+mappers - Comma separated list of mappers  
+lighters - Comma separated list of lighters  
 contentrating - Text version of the song's content rating. Only value I know is "safe". Please tell me what others there are!  
-duration - Length of song in seconds
-durationtext - length of song as a string e.g. 4:20
-maptype
-environment
+duration - Length of song in seconds  
+durationtext - length of song as a string e.g. 4:20  
+maptype  
+environment  
 difficulty - String: easy/normal/hard/expert/expertplus  
 difficultylabel - Custom difficulty label that some mappers use  
 njs  
-bsrkey - 3-5 digit song key for beatsaver.com: Can be converted to a song url, e.g. [https://beatsaver.com/maps/**8278**](https://beatsaver.com/maps/8278)
+bsrkey - 3-5 digit song key for beatsaver.com: Can be converted to a song url, e.g. [https://beatsaver.com/maps/**8278**](https://beatsaver.com/maps/8278)  
 previousbsrkey - 3-5 digit song key for previous song  
+
+## Shameless self promotion
+# https://twitch.tv/LumKitty
+This plugin is free, but please consider sending a follow or a raid my way. If you somehow make millions using this, consider sending some my way too! :3
