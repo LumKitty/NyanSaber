@@ -345,8 +345,8 @@ namespace NyanSaber {
                 );
 
                 int Seconds = (int)Song["length"] / 1000;
-                int Minutes = Seconds / 60;
-                Seconds = Seconds - Minutes;
+                int Minutes = (int)Math.Floor((decimal)(Seconds / 60));
+                Seconds = Seconds - (Minutes * 60);
 
                 JObject SongInfo = new JObject(
                     new JProperty("songname", Song["songName"]),
