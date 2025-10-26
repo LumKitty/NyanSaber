@@ -18,14 +18,12 @@ namespace NyanSaber {
         private const string SettingsFileName = "NyanSaber.cfg";
 
         private static WatsonWsClient? client = null;
-        private static bool BSInLevel = false;
-        private static bool BSPaused = false;
         private static bool Connecting = false;
         private static bool DisconnectRequested = false;
 
         // Default settings
         
-        private const string DefaultURL = "ws://127.0.0.1:2946/BSDataPuller";
+        private const string DefaultURL = "ws://127.0.0.1:6557/socket";
         private const int DefaultRetryInterval = 1000;
         private const int DefaultMaxRetries = 5;
         private const bool DefaultRetryOnDisconnect = false;
@@ -180,7 +178,7 @@ namespace NyanSaber {
                     Connecting = true;
                     DisconnectRequested = false;
                     Log("Connecting to websocket");
-                    client = new WatsonWsClient(new Uri(URL + "/MapData"));
+                    client = new WatsonWsClient(new Uri(URL));
                     client.ServerConnected += ServerConnected;
                     client.ServerDisconnected += ServerDisconnected;
                     client.MessageReceived += MessageReceived;
@@ -190,7 +188,7 @@ namespace NyanSaber {
                     while (!client.Connected && Retries < MaxRetries && !DisconnectRequested) {
                         Retries++;
                         Log("Failed to connect, retrying " + Retries.ToString() + "/" + MaxRetries.ToString());
-                        client = new WatsonWsClient(new Uri(URL + "/MapData"));
+                        client = new WatsonWsClient(new Uri(URL));
                         client.ServerConnected += ServerConnected;
                         client.ServerDisconnected += ServerDisconnected;
                         client.MessageReceived += MessageReceived;
@@ -262,112 +260,147 @@ namespace NyanSaber {
             }
         }
 
-        private static void BSSongEvent(string TriggerName, dynamic Results) {
-            int BPM = Results.BPM;
-            int SongRating;
-            int SongDifficulty;
-
-            int Seconds;
-            int Minutes = Math.DivRem(int.Parse(Results.Duration.ToString()), 60, out Seconds);
-
-            switch (Results.ContentRating.ToString().ToLower()) {
-                case "safe":
-                    SongRating = 0;
-                    break;
-                default:
-                    SongRating = 1;
-                    break;
+        private static string BSColorToHex(JArray Colors) {
+            if (Colors != null) {
+                Log("Colours: " + Colors.ToString());
+                Log(Colors[0].ToString());
+                Log(Colors[1].ToString());
+                Log(Colors[2].ToString());
+                return ((int)Colors[0]).ToString("X2") + ((int)Colors[1]).ToString("X2") + ((int)Colors[2]).ToString("X2");
+            } else {
+                return "";
             }
-            switch (Results.Difficulty.ToString().ToLower()) {
-                case "easy":
-                    SongDifficulty = 1;
-                    break;
-                case "normal":
-                    SongDifficulty = 2;
-                    break;
-                case "hard":
-                    SongDifficulty = 3;
-                    break;
-                case "expert":
-                    SongDifficulty = 4;
-                    break;
-                case "expertplus":
-                    SongDifficulty = 5;
-                    break;
-                default:
-                    SongDifficulty = 0;
-                    break;
+        }
+
+        private static string BSNamesToList(JArray Names) {
+            string result = "";
+            if (Names.Count > 0) {
+                foreach (JToken Name in Names) {
+                    result += (String)Name + ", ";
+                }
+                return result.Substring(0, result.Length - 2);
+            } else {
+                return "";
             }
+        }
 
-            string Difficulty = Results.Difficulty;
-            string SongName = Results.SongAuthor + " - " + Results.SongName;
-            if (Results.SongSubName.ToString().Length > 0) {
-                SongName += " (" + Results.SongSubName + ")";
+        private static void BSMenuEvent(string TriggerName, JObject Results) {
+            CallVNyan(TriggerName, 0, 0, 0, "", "", "");
+        }
+
+        private static void BSSongEvent(string TriggerName, JObject Results) {
+            Log(TriggerName);
+            JObject Status = (JObject)Results["status"];
+            if (Status.ContainsKey("beatmap")) {
+                Log("Song info found");
+                JObject Song = (JObject)Status["beatmap"];
+                if (Song.ContainsKey("songCover")) { Song["songCover"] = ""; }
+                Log(Song.ToString());
+                int BPM;
+                Int32.TryParse((string)Song["songBPM"], out BPM);
+                int SongDifficulty;
+                int SongLength;
+                string Lighters;
+                string FriendlyDuration;
+
+                Int32.TryParse((string)Song["length"], out SongLength);
+
+                switch (((string)Song["difficulty"]).ToLower()) {
+                    case "easy":
+                        SongDifficulty = 1;
+                        break;
+                    case "normal":
+                        SongDifficulty = 2;
+                        break;
+                    case "hard":
+                        SongDifficulty = 3;
+                        break;
+                    case "expert":
+                        SongDifficulty = 4;
+                        break;
+                    case "expertplus":
+                        SongDifficulty = 5;
+                        break;
+                    default:
+                        SongDifficulty = 0;
+                        break;
+                }
+
+                string Difficulty = (string)Song["difficulty"];
+                string SongName = (string)Song["songAuthorName"] + " - " + (string)Song["songName"];
+                string SongSubName = (string)Song["songSubName"];
+                if ((SongSubName != null) && (SongSubName.Length > 0)) {
+                    SongName += " (" + SongSubName + ")";
+                }
+                JObject TempColors = (JObject)Song["color"];
+
+                JObject Colors = new JObject(
+                    new JProperty("left", BSColorToHex((JArray)TempColors["saberA"])),
+                    new JProperty("right", BSColorToHex((JArray)TempColors["saberB"])),
+                    new JProperty("obstacles", BSColorToHex((JArray)TempColors["obstacle"])),
+                    new JProperty("environment0", BSColorToHex((JArray)TempColors["environment0"])),
+                    new JProperty("environment1", BSColorToHex((JArray)TempColors["environment1"])),
+                    new JProperty("environment0boost", BSColorToHex((JArray)TempColors["environment0Boost"])),
+                    new JProperty("environment1boost", BSColorToHex((JArray)TempColors["environment1Boost"]))
+                );
+
+                int Seconds = (int)Song["length"] / 1000;
+                int Minutes = Seconds / 60;
+                Seconds = Seconds - Minutes;
+
+                JObject SongInfo = new JObject(
+                    new JProperty("songname", Song["songName"]),
+                    new JProperty("songsubname", Song["songSubName"]),
+                    new JProperty("songauthor", Song["songAuthorName"]),
+                    new JProperty("mappers", BSNamesToList((JArray)Song["levelAuthorNamesArray"])),
+                    new JProperty("lighters", BSNamesToList((JArray)Song["lighterNamesArray"])),
+                    new JProperty("duration", Song["length"]),
+                    new JProperty("durationtext", Minutes + ":" + Seconds),
+                    new JProperty("environment", Song["environmentName"]),
+                    new JProperty("difficulty", Song["difficulty"]),
+                    new JProperty("njs", Song["noteJumpSpeed"])
+                );
+
+                CallVNyan(TriggerName, SongDifficulty, BPM, SongLength, SongName, Colors.ToString(), SongInfo.ToString());
+
+
+                //Log("Song Started: " + SongName + "(Difficulty: " + Difficulty + ", BPM: " + BPM + ", Duration: " + Duration + " seconds)");
+            } else {
+                Log("Song info not found");
+                CallVNyan(TriggerName, 0, 0, 0, "", "", "");
             }
-
-            JObject Colors = new JObject(
-                new JProperty("left", Results.ColorScheme.SaberAColor.HexCode),
-                new JProperty("right", Results.ColorScheme.SaberBColor.HexCode),
-                new JProperty("obstacles", Results.ColorScheme.ObstaclesColor.HexCode),
-                new JProperty("environment0", Results.ColorScheme.EnvironmentColor0.HexCode),
-                new JProperty("environment1", Results.ColorScheme.EnvironmentColor1.HexCode),
-                new JProperty("environment0boost", Results.ColorScheme.EnvironmentColor0Boost.HexCode),
-                new JProperty("environment1boost", Results.ColorScheme.EnvironmentColor1Boost.HexCode)
-            );
-
-            JObject SongInfo = new JObject(
-                new JProperty("songname", Results.SongName),
-                new JProperty("songsubname", Results.SongSubName),
-                new JProperty("songauthor", Results.SongAuthor),
-                new JProperty("mappers", Results.Mapper),
-                new JProperty("lighters", JoinJArray(Results.Lighters)),
-                new JProperty("contentrating", Results.ContentRating),
-                // new JProperty("coverimage", Results.CoverImage), // TODO: Does anyone need base64 encoded PNG here?
-                new JProperty("duration", Results.Duration.ToString()),
-                new JProperty("durationtext", Minutes + ":" + Seconds),
-                new JProperty("maptype", Results.MapType),
-                new JProperty("environment", Results.Environment),
-                new JProperty("difficulty", Results.Difficulty),
-                new JProperty("difficultylabel", ConvertNullString(Results.CustomDifficultyLabel)),
-                new JProperty("njs", Results.NJS.ToString()),
-                new JProperty("bsrkey", ConvertNullString(Results.BSRKey)),
-                new JProperty("previousbsrkey", ConvertNullString(Results.PreviousBSR))
-            );
-            CallVNyan(TriggerName, SongDifficulty, BPM, SongRating, SongName, Colors.ToString(Formatting.None), SongInfo.ToString(Formatting.None));
         }
 
         private static async void MessageReceived(object sender, MessageReceivedEventArgs args) {
             string Response = Encoding.UTF8.GetString(args.Data);
-            Log("Message from server: " + Response.Substring(0, 40) + "...");
-            dynamic Results = JsonConvert.DeserializeObject<dynamic>(Response);
-            if (!BSInLevel && (bool)Results.InLevel) {
-                BSInLevel = true;
-                BSSongEvent("_lum_bs_songstart", Results);
-            }
-            if (BSInLevel && !(bool)Results.InLevel) {
-                // Song ended
-                BSInLevel = false;
-                BSPaused = false;
-                if ((bool)Results.LevelFinished) {
-                    BSSongEvent("_lum_bs_songend", Results);
-                } else if ((bool)Results.LevelFailed) {
+            //Log("Message from server: " + Response.Substring(0, 40) + "...");
+
+            JObject Results = JObject.Parse(Response);
+
+            Log("Event: " + (string)Results["event"]);
+
+            switch ((string)Results["event"]) {
+                case "hello":
+
+                    break;
+                case "songStart":
+                    BSSongEvent("_lum_bs_songstart", Results);
+                    break;
+                case "finished":
+                    BSSongEvent("_lum_bs_songpass", Results);
+                    break;
+                case "failed":
                     BSSongEvent("_lum_bs_songfail", Results);
-                } else if ((bool)Results.LevelQuit) {
-                    BSSongEvent("_lum_bs_songquit", Results);
-                } else {
-                    // WTF
-                    Log("Song exited in an unknown way");
-                }
-            }
-            if (!BSPaused && (bool)Results.LevelPaused && (bool)Results.InLevel) {
-                // Song paused
-                BSPaused = true;
-                BSSongEvent("_lum_bs_songpause", Results);
-            }
-            if (BSPaused && !(bool)Results.LevelPaused && (bool)Results.InLevel) {
-                // Song unpaused
-                BSPaused = false;
-                BSSongEvent("_lum_bs_songunpause", Results);
+                    break;
+                case "menu":
+                    BSMenuEvent("_lum_bs_menu", Results);
+                    break;
+                case "pause":
+                    BSSongEvent("_lum_bs_songpause", Results);
+                    break;
+                case "resume":
+                    BSSongEvent("_lum_bs_songunpause", Results);
+                    break;
             }
         }
 
