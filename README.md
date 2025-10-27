@@ -1,17 +1,17 @@
-# VNyan integration with BSDataPuller
+# VNyan integration with HTTPSiraStatus
 This plugin allows VNyan nodegraphs to react to events in Beat Saber such as song start, end and fail. It also provides information about the song.
 It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games
 
 ## Installation and usage
 Install to VNyan in the usual way, by copying the included DLLs to VNyan\Items\Assemblies  
 Don't forget to enable third party plugins in VNyan: Menu -> Settings -> Misc -> Additional Settings -> Allow third party mods/plugins
-Requires BSDataPuller mod, you can install it from ModAssistant, or [from GitHub](https://github.com/ReadieFur/BSDataPuller)  
-Once Beat Saber is running, click the "NyanSaber" button from VNyan plugins menu to connect to BSDataPuller. Click it again to abort or disconnect. 
+Requires [HTTPSiraStatus](https://github.com/denpadokei/HttpSiraStatus)  
+Once Beat Saber is running, click the "NyanSaber" button from VNyan plugins menu to connect to Beat Saber. Click it again to abort or disconnect. 
 Alternatively use the connection control triggers documented below:  
 
 ## Network configuration
 After first use, NyanSaber.cfg will appear in your VNyan profile directory (default: C:\Users\You\AppData\LocalLow\Suvidriel\VNyan)  
-```URL``` - URL for BSDataPuller **without the MapData end** (Default: "ws://127.0.0.1:2946/BSDataPuller")  
+```URL``` - URL for connecting to Beat Saber  
 ```RetryInterval``` - How long to wait between retries in milliseconds (default: 1000, i.e. 1 second)  
 ```MaxRetries"``` - Number of retry attempts (default: 5)
 ```RetryOnDisconnect``` - Auto reconnect if disconnected from Beat Saber (default: false)
@@ -77,8 +77,6 @@ environment
 difficulty - String: easy/normal/hard/expert/expertplus  
 difficultylabel - Custom difficulty label that some mappers use  
 njs  
-bsrkey - 3-5 digit song key for beatsaver.com: Can be converted to a song url, e.g. [https://beatsaver.com/maps/**8278**](https://beatsaver.com/maps/8278)  
-previousbsrkey - 3-5 digit song key for previous song  
 
 ## Shameless self promotion
 # https://twitch.tv/LumKitty
