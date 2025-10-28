@@ -20,7 +20,7 @@ After first use, NyanSaber.cfg will appear in your VNyan profile directory (defa
 ```_lum_bs_songstart```    
 num1 - Song difficulty: 1 = easy, 2 = normal, 3 = hard, 4 = expert, 5 = expert+. 0 = unknown  
 num2 - Song BPM  
-num3 - Song rating: 0 = safe 1 = anything else (I don't know what the valid values are yet!)  
+num3 - Song duration in miliseconds  
 text1 - Song name in this format: Artist - Song (Mix)  
 text2 - Song colour information as JSON (see the JSON values section below)  
 text3 - Other song information as JSON  
@@ -33,13 +33,13 @@ Triggered by their respective events
 Triggers when a song ends by any means and the player returns to the menu. This will be triggered in addition to fail or quit events if that is how the song ended
 
 ## Connection status triggers
-```_lum_bs_connected``` - Called upon successful connection to BSDataPuller  
+```_lum_bs_connected``` - Called upon successful connection to Beat Saber  
 ```_lum_bs_disconnected``` - Called when disconnected. Num1=0 - Disconnection was requested. Num1=1 - Disconnected involuntarily  
-```_lum_bs_connectfailed``` - Could not connect to BSDataPuller  
+```_lum_bs_connectfailed``` - Could not connect to Beat Saber  
 ```_lum_bs_connectaborted``` - Disconnection was requested before connection was successful  
 
 ## Triggers to control connection
-```_lum_bs_connect``` - Connect to BSDataPuller  
+```_lum_bs_connect``` - Connect to Beat Saber  
 The default connection parameters can be overridden here. These will not be saved!  
 num1 - Maximum number of retries  
 num2 - Time to wait between retries (in ms. 1000 = 1 second)  
@@ -70,7 +70,6 @@ songsubname - The mix of the song? (not actually sure what this is for yet)
 songauthor - Artist name  
 mappers - Comma separated list of mappers  
 lighters - Comma separated list of lighters  
-contentrating - Text version of the song's content rating. Only value I know is "safe". Please tell me what others there are!  
 duration - Length of song in seconds  
 durationtext - length of song as a string e.g. 4:20  
 maptype  
