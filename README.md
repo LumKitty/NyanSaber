@@ -17,19 +17,20 @@ After first use, NyanSaber.cfg will appear in your VNyan profile directory (defa
 ```RetryOnDisconnect``` - Auto reconnect if disconnected from Beat Saber (default: false)
 
 ## Triggers generated while running
-```_lum_bs_songstart```  
-```_lum_bs_songend```  
-```_lum_bs_songfail```  
-```_lum_bs_songquit```  
-```_lum_bs_songpause```  
-```_lum_bs_songresume```  
-
+```_lum_bs_songstart```    
 num1 - Song difficulty: 1 = easy, 2 = normal, 3 = hard, 4 = expert, 5 = expert+. 0 = unknown  
 num2 - Song BPM  
 num3 - Song rating: 0 = safe 1 = anything else (I don't know what the valid values are yet!)  
 text1 - Song name in this format: Artist - Song (Mix)  
 text2 - Song colour information as JSON (see the JSON values section below)  
 text3 - Other song information as JSON  
+```_lum_bs_songfail```  
+```_lum_bs_songquit```  
+```_lum_bs_songpause```  
+```_lum_bs_songresume```  
+Triggered by their respective events
+```_lum_bs_menu```  
+Triggers when a song ends by any means and the player returns to the menu. This will be triggered in addition to fail or quit events if that is how the song ended
 
 ## Connection status triggers
 ```_lum_bs_connected``` - Called upon successful connection to BSDataPuller  
