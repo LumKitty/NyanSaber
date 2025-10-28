@@ -28,7 +28,7 @@ text3 - Other song information as JSON
 ```_lum_bs_songquit```  
 ```_lum_bs_songpause```  
 ```_lum_bs_songresume```  
-Triggered by their respective events
+Triggered by their respective events  
 ```_lum_bs_menu```  
 Triggers when a song ends by any means and the player returns to the menu. This will be triggered in addition to fail or quit events if that is how the song ended
 
