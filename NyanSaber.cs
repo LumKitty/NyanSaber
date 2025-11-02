@@ -11,7 +11,7 @@ using WatsonWebsocket;
 namespace NyanSaber { 
     public class NyanSaber : IVNyanPluginManifest, ITriggerHandler, IButtonClickedHandler {
         public string PluginName { get; } = "NyanSaber";
-        public string Version { get; } = "0.3-beta";
+        public string Version { get; } = "0.4-beta";
         public string Title { get; } = "Nyan Saber";
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
@@ -284,11 +284,110 @@ namespace NyanSaber {
             }
         }
 
-        private static void BSMenuEvent(string TriggerName, JObject Results) {
+        private static int JObjectToInt(ref JObject Values, string Key) {
+            JValue temp = (JValue)Values[Key];
+            if (temp.Type != JTokenType.Null) {
+                int result;
+                int.TryParse(temp.ToString(), out result);
+                return result;
+            } else {
+                return -1;
+            }
+
+        }
+
+        private static void BSMenuEvent(string TriggerName, ref JObject Results) {
             CallVNyan(TriggerName, 0, 0, 0, "", "", "");
         }
 
-        private static void BSSongEvent(string TriggerName, JObject Results) {
+        private static void BSPerformanceEvent(string TriggerName, ref JObject Results) {
+            if (TriggerName != "_lum_bs_scorechanged") {
+                Log(TriggerName);
+                Log(Results.ToString());
+            }
+            JObject Status = (JObject)Results["status"];
+            string PerformanceResult;
+            string NoteResult;
+            int NoteScore = 0;
+            int Combo = 0;
+            int MissCount = 0;
+            string Rank = "";
+            if (Status.ContainsKey("performance")) {
+                JObject Performance = (JObject)Status["performance"];
+                int.TryParse(Performance["combo"].ToString(), out Combo);
+                Rank = Performance["rank"].ToString();
+                PerformanceResult = new JObject(
+                    new JProperty("rawscore", Performance["rawScore"].ToString()),
+                    new JProperty("score", Performance["score"].ToString()),
+                    new JProperty("currentmaxscore", Performance["currentMaxScore"].ToString()),
+                    new JProperty("rank", Rank),
+                    new JProperty("relativescore", Performance["relativeScore"].ToString()),
+                    new JProperty("passednotes", Performance["passedNotes"].ToString()),
+                    new JProperty("hitnotes", Performance["hitNotes"].ToString()),
+                    new JProperty("missednotes", Performance["missedNotes"].ToString()),
+                    new JProperty("passedbombs", Performance["passedBombs"].ToString()),
+                    new JProperty("hitbombs", Performance["hitBombs"].ToString()),
+                    new JProperty("combo", Combo.ToString()),
+                    new JProperty("maxcombo", Performance["maxCombo"].ToString()),
+                    new JProperty("multiplier", Performance["multiplier"].ToString()),
+                    new JProperty("multiplierprogress", Performance["multiplierProgress"].ToString()),
+                    new JProperty("batteryenergy", JObjectToInt(ref Performance, "batteryEnergy").ToString()),
+                    new JProperty("currentsongtime", Performance["currentSongTime"].ToString()),
+                    new JProperty("softfailed", Performance["softFailed"].ToString())
+                ).ToString();
+            } else {
+                PerformanceResult = "";
+            }
+            if (Results.ContainsKey("noteCut")) {
+                JObject NoteCut = (JObject)Results["noteCut"];
+                JArray SaberDir = (JArray)NoteCut["saberDir"];
+                JArray CutPoint = (JArray)NoteCut["cutPoint"];
+                JArray CutNormal = (JArray)NoteCut["cutNormal"];
+                int InitialScore = JObjectToInt(ref NoteCut, "initialScore");
+                int FinalScore = JObjectToInt(ref NoteCut, "finalScore");
+                int CutDistanceScore = JObjectToInt(ref NoteCut, "cutDistanceScore");
+                JObject NoteResultJSON = new JObject(
+                    new JProperty("noteid", NoteCut["noteID"].ToString()),
+                    new JProperty("notetype", NoteCut["noteType"].ToString()),
+                    new JProperty("notecutdirection", NoteCut["noteCutDirection"].ToString()),
+                    new JProperty("noteline", NoteCut["noteLine"].ToString()),
+                    new JProperty("notelayer", NoteCut["noteLayer"].ToString()),
+                    new JProperty("speedok", NoteCut["speedOK"].ToString()),
+                    new JProperty("wascuttoosoon", NoteCut["wasCutTooSoon"].ToString()),
+                    new JProperty("initialscore", InitialScore.ToString()),
+                    new JProperty("finalscore", FinalScore.ToString()),
+                    new JProperty("cutdistancescore", CutDistanceScore.ToString()),
+                    new JProperty("multiplier", NoteCut["multiplier"].ToString()),
+                    new JProperty("saberspeed", NoteCut["saberSpeed"].ToString()),
+                    new JProperty("saberdirx", SaberDir[0].ToString()),
+                    new JProperty("saberdiry", SaberDir[1].ToString()),
+                    new JProperty("saberdirz", SaberDir[2].ToString()),
+                    new JProperty("sabertype", NoteCut["saberType"].ToString()),
+                    new JProperty("swingrating", NoteCut["swingRating"].ToString()),
+                    new JProperty("timedeviation", NoteCut["timeDeviation"].ToString()),
+                    new JProperty("cutdirectiondeviation", NoteCut["cutDirectionDeviation"].ToString()),
+                    new JProperty("cutpointx", CutPoint[0].ToString()),
+                    new JProperty("cutpointy", CutPoint[1].ToString()),
+                    new JProperty("cutpointz", CutPoint[2].ToString()),
+                    new JProperty("cutnormalx", CutNormal[0].ToString()),
+                    new JProperty("cutnormaly", CutNormal[1].ToString()),
+                    new JProperty("cutnormalz", CutNormal[2].ToString()),
+                    new JProperty("cutdistancetocenter", NoteCut["cutDistanceToCenter"].ToString()),
+                    new JProperty("timetonextbasicnote", NoteCut["timeToNextBasicNote"].ToString())
+                );
+                if (FinalScore > 0) {
+                    NoteScore = FinalScore;
+                } else {
+                    NoteScore = InitialScore;
+                }
+                NoteResult = NoteResultJSON.ToString();
+            } else {
+                NoteResult = "";
+            }
+            CallVNyan(TriggerName, Combo, MissCount, NoteScore, Rank, PerformanceResult, NoteResult);
+        }
+
+        private static void BSSongEvent(string TriggerName, ref JObject Results) {
             Log(TriggerName);
             JObject Status = (JObject)Results["status"];
             if (Status.ContainsKey("beatmap")) {
@@ -335,9 +434,9 @@ namespace NyanSaber {
                 JObject TempColors = (JObject)Song["color"];
 
                 JObject Colors = new JObject(
-                    new JProperty("left", BSColorToHex((JArray)TempColors["saberA"])),
-                    new JProperty("right", BSColorToHex((JArray)TempColors["saberB"])),
-                    new JProperty("obstacles", BSColorToHex((JArray)TempColors["obstacle"])),
+                    new JProperty("sabera", BSColorToHex((JArray)TempColors["saberA"])),
+                    new JProperty("saberb", BSColorToHex((JArray)TempColors["saberB"])),
+                    new JProperty("obstacle", BSColorToHex((JArray)TempColors["obstacle"])),
                     new JProperty("environment0", BSColorToHex((JArray)TempColors["environment0"])),
                     new JProperty("environment1", BSColorToHex((JArray)TempColors["environment1"])),
                     new JProperty("environment0boost", BSColorToHex((JArray)TempColors["environment0Boost"])),
@@ -351,14 +450,14 @@ namespace NyanSaber {
                 JObject SongInfo = new JObject(
                     new JProperty("songname", Song["songName"]),
                     new JProperty("songsubname", Song["songSubName"]),
-                    new JProperty("songauthor", Song["songAuthorName"]),
-                    new JProperty("mappers", BSNamesToList((JArray)Song["levelAuthorNamesArray"])),
-                    new JProperty("lighters", BSNamesToList((JArray)Song["lighterNamesArray"])),
-                    new JProperty("duration", Song["length"]),
-                    new JProperty("durationtext", Minutes + ":" + Seconds),
-                    new JProperty("environment", Song["environmentName"]),
+                    new JProperty("songauthorname", Song["songAuthorName"]),
+                    new JProperty("levelauthornames", BSNamesToList((JArray)Song["levelAuthorNamesArray"])),
+                    new JProperty("lighternames", BSNamesToList((JArray)Song["lighterNamesArray"])),
+                    new JProperty("length", Song["length"]),
+                    new JProperty("lengthtext", Minutes + ":" + Seconds.ToString().PadLeft(2, '0')),
+                    new JProperty("environmentname", Song["environmentName"]),
                     new JProperty("difficulty", Song["difficulty"]),
-                    new JProperty("njs", Song["noteJumpSpeed"])
+                    new JProperty("notejumpspeed", Song["noteJumpSpeed"])
                 );
 
                 CallVNyan(TriggerName, SongDifficulty, BPM, SongLength, SongName, Colors.ToString(), SongInfo.ToString());
@@ -377,29 +476,55 @@ namespace NyanSaber {
 
             JObject Results = JObject.Parse(Response);
 
-            Log("Event: " + (string)Results["event"]);
+            //Log("Event: " + (string)Results["event"]);
 
             switch ((string)Results["event"]) {
                 case "hello":
 
                     break;
                 case "songStart":
-                    BSSongEvent("_lum_bs_songstart", Results);
+                    BSSongEvent("_lum_bs_songstart", ref Results);
                     break;
                 case "finished":
-                    BSSongEvent("_lum_bs_songpass", Results);
+                    BSSongEvent("_lum_bs_songpass", ref Results);
                     break;
                 case "failed":
-                    BSSongEvent("_lum_bs_songfail", Results);
+                    BSSongEvent("_lum_bs_songfail", ref Results);
                     break;
                 case "menu":
-                    BSMenuEvent("_lum_bs_menu", Results);
+                    BSMenuEvent("_lum_bs_menu", ref Results);
                     break;
                 case "pause":
-                    BSSongEvent("_lum_bs_songpause", Results);
+                    BSSongEvent("_lum_bs_songpause", ref Results);
                     break;
                 case "resume":
-                    BSSongEvent("_lum_bs_songunpause", Results);
+                    BSSongEvent("_lum_bs_songunpause", ref Results);
+                    break;
+                case "beatmapEvent":
+                    break;
+                case "noteCut":
+                    BSPerformanceEvent("_lum_bs_notecut", ref Results);
+                    break;
+                case "noteFullyCut":
+                    BSPerformanceEvent("_lum_bs_notefullycut", ref Results);
+                    break;
+                case "noteMissed":
+                    BSPerformanceEvent("_lum_bs_notemissed", ref Results);
+                    break;
+                case "bombCut":
+                    BSPerformanceEvent("_lum_bs_bombcut", ref Results);
+                    break;
+                case "bombMissed":
+                    BSPerformanceEvent("_lum_bs_bombMissed", ref Results);
+                    break;
+                case "obstacleEnter":
+                    BSPerformanceEvent("_lum_bs_obstacleenter", ref Results);
+                    break;
+                case "obstacleExit":
+                    BSPerformanceEvent("_lum_bs_obstacleexit", ref Results);
+                    break;
+                case "scoreChanged":
+                    BSPerformanceEvent("_lum_bs_scorechanged", ref Results);
                     break;
             }
         }
