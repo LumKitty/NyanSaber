@@ -3,6 +3,7 @@ This plugin allows VNyan nodegraphs to react to events in Beat Saber such as son
 It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games
 
 **Warning: I haven't fully updated this doc for 0.4 yet. Will do it soon I promise!**
+In the meantime, every trigger it sends is logged to VNyan's player.log so you can take a look there for JSON values!
 
 ## Installation and usage
 Install to VNyan in the usual way, by copying the included DLLs to VNyan\Items\Assemblies  
