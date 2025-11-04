@@ -2,6 +2,8 @@
 This plugin allows VNyan nodegraphs to react to events in Beat Saber such as song start, end and fail. It also provides information about the song.
 It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games
 
+**Warning: I haven't fully updated this doc for 0.4 yet. Will do it soon I promise!**
+
 ## Installation and usage
 Install to VNyan in the usual way, by copying the included DLLs to VNyan\Items\Assemblies  
 Don't forget to enable third party plugins in VNyan: Menu -> Settings -> Misc -> Additional Settings -> Allow third party mods/plugins
@@ -56,9 +58,9 @@ All JSON values are suitable for use with the JSON to Dictionary node in VNyan
 ### Song colour information
 All values are hex codes in the form #RRGGBB  
   
-left - Left sabre colour  
-right - Right sabre colour  
-obstacles  
+sabera - Left sabre colour  
+saberb - Right sabre colour  
+obstacle  
 environment0  
 environment1  
 environment0boost  
