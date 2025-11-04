@@ -72,8 +72,8 @@ songsubname - The mix of the song? (not actually sure what this is for yet)
 songauthor - Artist name  
 mappers - Comma separated list of mappers  
 lighters - Comma separated list of lighters  
-duration - Length of song in seconds  
-durationtext - length of song as a string e.g. 4:20  
+length - Length of song in seconds  
+lengthtext - length of song as a string e.g. 4:20  
 maptype  
 environment  
 difficulty - String: easy/normal/hard/expert/expertplus  
