@@ -37,7 +37,7 @@ namespace NyanSaber {
         private static int MaxRetries;
         private static bool RetryOnDisconnect;
         private static string[] BlockedEvents = { };
-        private static bool LogSpam = false;
+        private static int LogLevel = 1;
 
         public void InitializePlugin() {
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);
@@ -64,7 +64,7 @@ namespace NyanSaber {
                     string tempMaxRetries;
                     string tempRetryOnDisconnect;
                     string tempBlockEvents;
-                    string tempLogSpam;
+                    string tempLogLevel;
 
                     if (settings.TryGetValue("BlockedEvents", out tempBlockEvents)) {
                         if (tempBlockEvents.Length > 0) {
@@ -83,21 +83,21 @@ namespace NyanSaber {
                         SettingMissing = true;
                     }
                     if (SettingMissing) {
-                        BlockedEvents = new string[] { "_lum_bs_notefullycut", "_lum_bs_notemisseddetails" };
+                        BlockedEvents = new string[] { "_lum_bs_notefullycut", "_lum_bs_notemisseddetails", "_lum_bs_beatmap", "_lum_bs_energychanged" };
                     }
                     Log("Final list of Blocked Events: " + String.Join(",", BlockedEvents));
 
-                    if (settings.TryGetValue("LogSpam", out tempLogSpam)) {
-                        if (bool.TryParse(tempLogSpam, out LogSpam)) {
-                            Log("Log spam: " + LogSpam.ToString());
+                    if (settings.TryGetValue("LogLevel", out tempLogLevel)) {
+                        if (int.TryParse(tempLogLevel, out LogLevel)) {
+                            Log("Log level: " + LogLevel.ToString());
                         } else {
-                            Log("Could not read LogSpam setting, disabling");
-                            LogSpam = false;
+                            Log("Could not read LogLevel setting, setting to 1");
+                            LogLevel = 1;
                             SettingMissing = true;
                         }
                     } else {
-                        LogSpam = false;
-                        Log("LogSpam setting missing, disabling");
+                        LogLevel = 1;
+                        Log("LogLevel setting missing, setting to 1");
                         SettingMissing = true;
                     }
 
@@ -179,15 +179,17 @@ namespace NyanSaber {
             settings["MaxRetries"] = MaxRetries.ToString();
             settings["RetryOnDisconnect"] = RetryOnDisconnect.ToString();
             settings["BlockedEvents"] = String.Join(',', BlockedEvents);
-            settings["LogSpam"] = LogSpam.ToString();
+            settings["LogLevel"] = LogLevel.ToString();
 
             VNyanInterface.VNyanInterface.VNyanSettings.saveSettings(SettingsFileName, settings);
         }
 
         private static void CallVNyan(string TriggerName, int int1, int int2, int int3, string text1, string text2, string text3) {
-            if (LogSpam) {
+            if (LogLevel >= 2) {
                 Log("Trigger: " + TriggerName.PadRight(20, ' ') + "|" + int1.ToString().PadRight(5, ' ') + "|" + int2.ToString().PadRight(5, ' ') + "|" + int3.ToString().PadRight(5, ' ')
                    + "|" + text1 + "|" + text2 + "|" + text3);
+            } else if (LogLevel == 1) {
+                Log("Trigger: " + TriggerName);
             }
             VNyanInterface.VNyanInterface.VNyanTrigger.callTrigger(TriggerName, int1, int2, int3, text1, text2, text3);
         }
@@ -250,7 +252,7 @@ namespace NyanSaber {
                             VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_bs_connected", 0);
                             CallVNyan("_lum_bs_disconnected", 0, 0, 0, "", "", "");
                         } else {
-                            Log("Connect function exiting");
+                            if (LogLevel >= 3) { Log("Connect function exiting"); }
                         }
                     } else {
                         if (DisconnectRequested) {
@@ -308,10 +310,12 @@ namespace NyanSaber {
 
         private static string BSColorToHex(JArray Colors) {
             if (Colors != null) {
-                //Log("Colours: " + Colors.ToString());
-                //Log(Colors[0].ToString());
-                //Log(Colors[1].ToString());
-                //Log(Colors[2].ToString());
+                if (LogLevel >= 4) {
+                    Log("Colours: " + Colors.ToString());
+                    Log(Colors[0].ToString());
+                    Log(Colors[1].ToString());
+                    Log(Colors[2].ToString());
+                }
                 return ((int)Colors[0]).ToString("X2") + ((int)Colors[1]).ToString("X2") + ((int)Colors[2]).ToString("X2");
             } else {
                 return "";
@@ -342,17 +346,42 @@ namespace NyanSaber {
 
         }
 
+        private static string JSONtoVNyan(ref JObject InputJSON) {
+            JObject Results = new JObject();
+            foreach (JProperty Key in InputJSON.OfType<JProperty>()) {
+                Results.Add(new JProperty(Key.Name.ToLower(), Key.Value.ToString()));
+            }
+            return Results.ToString();
+        }
+        private static string JSONtoVNyan(JObject InputJSON) {
+            return JSONtoVNyan(ref InputJSON);
+        }
+
+
+
+        private static void LogHeader(ref string TriggerName, ref JObject Results) {
+            if (LogLevel >= 2) { 
+                Log("**************************************************************************");
+                Log(TriggerName);
+            }
+            
+            if (LogLevel >= 3) { 
+                if ((LogLevel < 69) && Results.ContainsKey("status") && (((JObject)Results["status"]).ContainsKey("beatmap"))) {
+                    ((JObject)Results["status"]["beatmap"]).Remove("songCover");
+                }
+                Log(Results.ToString()); 
+            }
+        }
+
         private static void BSMenuEvent(string TriggerName, ref JObject Results) {
-            Log(TriggerName);
+            LogHeader(ref TriggerName, ref Results);
             CallVNyan(TriggerName, 0, 0, 0, "", "", "");
         }
 
         private static void BSPerformanceEvent(string TriggerName, ref JObject Results) {
             if (!BlockedEvents.Contains(TriggerName)) {
                 //if (TriggerName != "_lum_bs_scorechanged") {
-                if (LogSpam) { Log("**************************************************************************"); }
-                Log(TriggerName);
-                if (LogSpam) { Log(Results.ToString()); }
+                LogHeader(ref TriggerName, ref Results);
                 //}
                 JObject Status = (JObject)Results["status"];
                 string PerformanceResult;
@@ -437,8 +466,9 @@ namespace NyanSaber {
             }
         }
 
-        private static void BSScoreEvent(ref JObject Results) {
-            if (!BlockedEvents.Contains("_lum_bs_scorechanged")) {
+        private static void BSScoreEvent(string TriggerName, ref JObject Results) {
+            if (!BlockedEvents.Contains(TriggerName)) {
+                LogHeader(ref TriggerName, ref Results);
                 JObject Performance = (JObject)((JObject)Results["status"])["performance"];
                 int TempCombo = 0;
                 int TempMaxScore = 0;
@@ -448,23 +478,60 @@ namespace NyanSaber {
                         Combo = TempCombo;
                         MaxScore = TempMaxScore;
                         BSPerformanceEvent("_lum_bs_scorechanged", ref Results);
+                    } else {
+                        if (LogLevel >= 3) { Log("Filtered duplicate Score event"); }
                     }
                 }
             }
         }
 
         private static void BSLogOnly(string EventName, ref JObject Results) {
-            Log("LOGONLY: " + EventName);
-            if (LogSpam) { Log(Results.ToString()); }
+            if (LogLevel >= 3) { Log("**************************************************************************"); }
+            if (LogLevel >= 2) { Log("LOGONLY: " + EventName); }
+            if (LogLevel >= 3) { Log(Results.ToString()); }
         }
         
+
+        private static void BeatMapEvent(string TriggerName, ref JObject Results) {
+            if (!BlockedEvents.Contains("_lum_bs_beatmap")) {
+                int EventVersion = 0;
+                int Type = 0;
+                int GroupID = 0;
+                string EventJSON = "";
+                string PrevJSON = "";
+                string NextJSON = "";
+
+                LogHeader(ref TriggerName, ref Results);
+                if (Results.ContainsKey("beatmapEvent")) {
+                    JObject Event = (JObject)Results["beatmapEvent"];
+                    if (Event.ContainsKey("version")) {
+                        string Temp = Event["version"].ToString();
+                        int.TryParse(Temp.Substring(0, Temp.IndexOf('.')), out EventVersion);
+                    }
+                    if (Event.ContainsKey("type")) { int.TryParse(Event["type"].ToString(), out Type); }
+                    if (Event.ContainsKey("groupId")) { int.TryParse(Event["groupId"].ToString(), out GroupID); }
+                    if (Event.ContainsKey("previousSameTypeEventData")) {
+                        PrevJSON = JSONtoVNyan((JObject)Event["previousSameTypeEventData"]);
+                        Event.Remove("previousSameTypeEventData");
+                    }
+                    if (Event.ContainsKey("nextSameTypeEventData")) {
+                        NextJSON = JSONtoVNyan((JObject)Event["nextSameTypeEventData"]);
+                        Event.Remove("nextSameTypeEventData");
+                    }
+                    EventJSON = JSONtoVNyan(ref Event);
+                    CallVNyan(TriggerName, EventVersion, Type, GroupID, EventJSON, PrevJSON, NextJSON);
+                } else {
+                    if (LogLevel >=3) { Log("Skipping useless Beatmap event with no data"); }
+                }
+            }
+        }
+
         private static void BSSongEvent(string TriggerName, ref JObject Results) {
             if (!BlockedEvents.Contains(TriggerName)) {
-                Log(TriggerName);
-                if (LogSpam) { Log(Results.ToString()); }
+                LogHeader(ref TriggerName, ref Results);
                 JObject Status = (JObject)Results["status"];
                 if (Status.ContainsKey("beatmap")) {
-                    if (LogSpam) { Log("Song info found"); }
+                    if (LogLevel >= 3) { Log("Song info found"); }
                     JObject Song = (JObject)Status["beatmap"];
                     if (Song.ContainsKey("songCover")) { Song["songCover"] = ""; }
                     int BPM;
@@ -537,7 +604,7 @@ namespace NyanSaber {
 
                     //Log("Song Started: " + SongName + "(Difficulty: " + Difficulty + ", BPM: " + BPM + ", Duration: " + Duration + " seconds)");
                 } else {
-                    if (LogSpam) { Log("Song info not found"); }
+                    if (LogLevel >= 3) { Log("Song info not found"); }
                     CallVNyan(TriggerName, 0, 0, 0, "", "", "");
                 }
             }
@@ -545,11 +612,9 @@ namespace NyanSaber {
 
         private static async void MessageReceived(object sender, MessageReceivedEventArgs args) {
             string Response = Encoding.UTF8.GetString(args.Data);
-            //Log("Message from server: " + Response.Substring(0, 40) + "...");
+            if (LogLevel >= 5) { Log("Message from server: " + Response.Substring(0, 40) + "..."); }
 
             JObject Results = JObject.Parse(Response);
-
-            //Log("Event: " + (string)Results["event"]);
 
             switch ((string)Results["event"]) {
                 case "hello":
@@ -557,11 +622,13 @@ namespace NyanSaber {
                 case "noteSpawned":
                     break;
                 case "softFailed":
+                    BSPerformanceEvent("_lum_bs_softfailed", ref Results);
                     break;
                 case "energyChanged":
+                    BSPerformanceEvent("_lum_bs_energychanged", ref Results);
                     break;
                 case "beatmapEvent":
-                    //BSLogOnly("beatmapEvent", ref Results);
+                    BeatMapEvent("_lum_bs_beatmap", ref Results);
                     break;
                 case "songStart":
                     BSSongEvent("_lum_bs_songstart", ref Results);
@@ -598,7 +665,7 @@ namespace NyanSaber {
                     BSPerformanceEvent("_lum_bs_bombcut", ref Results);
                     break;
                 case "bombMissed":
-                    BSPerformanceEvent("_lum_bs_bombMissed", ref Results);
+                    BSPerformanceEvent("_lum_bs_bombmissed", ref Results);
                     break;
                 case "obstacleEnter":
                     BSPerformanceEvent("_lum_bs_obstacleenter", ref Results);
@@ -607,11 +674,11 @@ namespace NyanSaber {
                     BSPerformanceEvent("_lum_bs_obstacleexit", ref Results);
                     break;
                 case "scoreChanged":
-                    BSScoreEvent(ref Results);
+                    BSScoreEvent("_lum_bs_scorechanged", ref Results);
                     break;
                 default:
                     Log("Unknown event type: " + (string)Results["event"]);
-                    if (LogSpam) { Log(Results.ToString()); }
+                    if (LogLevel >= 3) { Log(Results.ToString()); }
                     break;
             }
         }
