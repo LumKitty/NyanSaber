@@ -12,7 +12,7 @@ using WatsonWebsocket;
 namespace NyanSaber { 
     public class NyanSaber : IVNyanPluginManifest, ITriggerHandler, IButtonClickedHandler {
         public string PluginName { get; } = "NyanSaber";
-        public string Version { get; } = "0.5-beta";
+        public string Version { get; } = "0.6-beta";
         public string Title { get; } = "Nyan Saber";
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
