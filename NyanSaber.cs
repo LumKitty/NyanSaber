@@ -9,10 +9,16 @@ using System.Threading.Tasks;
 using VNyanInterface;
 using WatsonWebsocket;
 
-namespace NyanSaber { 
+namespace NyanSaber {
+    public static partial class JTokenExtensions {
+        public static bool IsNull(this JToken token) {
+            return token == null || token.Type == JTokenType.Null;
+        }
+    }
+
     public class NyanSaber : IVNyanPluginManifest, ITriggerHandler, IButtonClickedHandler {
         public string PluginName { get; } = "NyanSaber";
-        public string Version { get; } = "0.6-beta";
+        public string Version { get; } = "0.7-beta";
         public string Title { get; } = "Nyan Saber";
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
@@ -365,17 +371,36 @@ namespace NyanSaber {
                 Log(TriggerName);
             }
             
-            if (LogLevel >= 3) { 
-                if ((LogLevel < 69) && Results.ContainsKey("status") && (((JObject)Results["status"]).ContainsKey("beatmap"))) {
-                    ((JObject)Results["status"]["beatmap"]).Remove("songCover");
-                }
+            if (LogLevel >= 3) {
+                RemoveSongCover(ref Results);
                 Log(Results.ToString()); 
             }
         }
 
+        private static void RemoveSongCover(ref JObject Results) {
+            try { 
+                if (Results.ContainsKey("status")) {
+                    if (LogLevel >= 4) { Log("Status key found"); }
+                    JObject Status = (JObject)Results["status"];
+                    if (Status.ContainsKey("beatmap") && (!Status["beatmap"].IsNull())) {
+                        if (LogLevel >= 4) { Log("Beatmap key found"); }
+                        JObject Beatmap = (JObject)Status["beatmap"];
+                        if (Beatmap.ContainsKey("songCover")) {
+                            if (LogLevel >= 4) { Log("SongCover key found, removing it"); }
+                            Beatmap.Remove("songCover");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                ErrorHandler(e);
+            }
+        }
+
         private static void BSMenuEvent(string TriggerName, ref JObject Results) {
-            LogHeader(ref TriggerName, ref Results);
-            CallVNyan(TriggerName, 0, 0, 0, "", "", "");
+            if (!BlockedEvents.Contains(TriggerName)) {
+                LogHeader(ref TriggerName, ref Results);
+                CallVNyan(TriggerName, 0, 0, 0, "", "", "");
+            }
         }
 
         private static void BSPerformanceEvent(string TriggerName, ref JObject Results) {
@@ -490,7 +515,6 @@ namespace NyanSaber {
             if (LogLevel >= 2) { Log("LOGONLY: " + EventName); }
             if (LogLevel >= 3) { Log(Results.ToString()); }
         }
-        
 
         private static void BeatMapEvent(string TriggerName, ref JObject Results) {
             if (!BlockedEvents.Contains("_lum_bs_beatmap")) {
@@ -611,75 +635,79 @@ namespace NyanSaber {
         }
 
         private static async void MessageReceived(object sender, MessageReceivedEventArgs args) {
-            string Response = Encoding.UTF8.GetString(args.Data);
-            if (LogLevel >= 5) { Log("Message from server: " + Response.Substring(0, 40) + "..."); }
+            try {
+                string Response = Encoding.UTF8.GetString(args.Data);
+                if (LogLevel >= 5) { Log("Message from server: " + Response.Substring(0, 40) + "..."); }
 
-            JObject Results = JObject.Parse(Response);
+                JObject Results = JObject.Parse(Response);
 
-            switch ((string)Results["event"]) {
-                case "hello":
-                    break;
-                case "noteSpawned":
-                    break;
-                case "softFailed":
-                    BSPerformanceEvent("_lum_bs_softfailed", ref Results);
-                    break;
-                case "energyChanged":
-                    BSPerformanceEvent("_lum_bs_energychanged", ref Results);
-                    break;
-                case "beatmapEvent":
-                    BeatMapEvent("_lum_bs_beatmap", ref Results);
-                    break;
-                case "songStart":
-                    BSSongEvent("_lum_bs_songstart", ref Results);
-                    break;
-                case "finished":
-                    BSSongEvent("_lum_bs_songpass", ref Results);
-                    break;
-                case "failed":
-                    BSSongEvent("_lum_bs_songfail", ref Results);
-                    break;
-                case "menu":
-                    BSMenuEvent("_lum_bs_menu", ref Results);
-                    break;
-                case "pause":
-                    BSSongEvent("_lum_bs_songpause", ref Results);
-                    break;
-                case "resume":
-                    BSSongEvent("_lum_bs_songunpause", ref Results);
-                    break;
-                case "noteCut":
-                    BSPerformanceEvent("_lum_bs_notecut", ref Results);
-                    break;
-                case "noteFullyCut":
-                    BSPerformanceEvent("_lum_bs_notefullycut", ref Results);
-                    break;
-                case "noteMissed":
-                    if (Results.ContainsKey("noteCut")) {
-                        BSPerformanceEvent("_lum_bs_notemisseddetails", ref Results);
-                    } else {
-                        BSPerformanceEvent("_lum_bs_notemissed", ref Results);
-                    }
-                    break;
-                case "bombCut":
-                    BSPerformanceEvent("_lum_bs_bombcut", ref Results);
-                    break;
-                case "bombMissed":
-                    BSPerformanceEvent("_lum_bs_bombmissed", ref Results);
-                    break;
-                case "obstacleEnter":
-                    BSPerformanceEvent("_lum_bs_obstacleenter", ref Results);
-                    break;
-                case "obstacleExit":
-                    BSPerformanceEvent("_lum_bs_obstacleexit", ref Results);
-                    break;
-                case "scoreChanged":
-                    BSScoreEvent("_lum_bs_scorechanged", ref Results);
-                    break;
-                default:
-                    Log("Unknown event type: " + (string)Results["event"]);
-                    if (LogLevel >= 3) { Log(Results.ToString()); }
-                    break;
+                switch ((string)Results["event"]) {
+                    case "hello":
+                        break;
+                    case "noteSpawned":
+                        break;
+                    case "softFailed":
+                        BSPerformanceEvent("_lum_bs_softfailed", ref Results);
+                        break;
+                    case "energyChanged":
+                        BSPerformanceEvent("_lum_bs_energychanged", ref Results);
+                        break;
+                    case "beatmapEvent":
+                        BeatMapEvent("_lum_bs_beatmap", ref Results);
+                        break;
+                    case "songStart":
+                        BSSongEvent("_lum_bs_songstart", ref Results);
+                        break;
+                    case "finished":
+                        BSSongEvent("_lum_bs_songpass", ref Results);
+                        break;
+                    case "failed":
+                        BSSongEvent("_lum_bs_songfail", ref Results);
+                        break;
+                    case "menu":
+                        BSMenuEvent("_lum_bs_menu", ref Results);
+                        break;
+                    case "pause":
+                        BSSongEvent("_lum_bs_songpause", ref Results);
+                        break;
+                    case "resume":
+                        BSSongEvent("_lum_bs_songunpause", ref Results);
+                        break;
+                    case "noteCut":
+                        BSPerformanceEvent("_lum_bs_notecut", ref Results);
+                        break;
+                    case "noteFullyCut":
+                        BSPerformanceEvent("_lum_bs_notefullycut", ref Results);
+                        break;
+                    case "noteMissed":
+                        if (Results.ContainsKey("noteCut")) {
+                            BSPerformanceEvent("_lum_bs_notemisseddetails", ref Results);
+                        } else {
+                            BSPerformanceEvent("_lum_bs_notemissed", ref Results);
+                        }
+                        break;
+                    case "bombCut":
+                        BSPerformanceEvent("_lum_bs_bombcut", ref Results);
+                        break;
+                    case "bombMissed":
+                        BSPerformanceEvent("_lum_bs_bombmissed", ref Results);
+                        break;
+                    case "obstacleEnter":
+                        BSPerformanceEvent("_lum_bs_obstacleenter", ref Results);
+                        break;
+                    case "obstacleExit":
+                        BSPerformanceEvent("_lum_bs_obstacleexit", ref Results);
+                        break;
+                    case "scoreChanged":
+                        BSScoreEvent("_lum_bs_scorechanged", ref Results);
+                        break;
+                    default:
+                        Log("Unknown event type: " + (string)Results["event"]);
+                        if (LogLevel >= 3) { Log(Results.ToString()); }
+                        break;
+                }
+            } catch (Exception e) {
+                ErrorHandler(e);
             }
         }
 

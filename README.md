@@ -29,7 +29,6 @@ After first use, NyanSaber.cfg will appear in your VNyan profile directory (defa
 ```_lum_bs_songquit``` - Manually exited (e.g. from the pause menu)  
 ```_lum_bs_songpause``` - Pause menu opened   
 ```_lum_bs_songresume``` - Pause menu closed and play resumed 
-```_lum_bs_menu``` - Triggers when a song ends by any means and the player returns to the menu. This will be triggered in addition to fail or quit events if that is how the song ended
 
 All events in this category will include the following information on the trigger nodes:  
 num1 - Song difficulty: 1 = easy, 2 = normal, 3 = hard, 4 = expert, 5 = expert+. 0 = unknown  
@@ -56,6 +55,11 @@ num3 - Current score (only for note and bomb events)
 text1 - Current rank  
 text2 - Performance JSON, compatible with JSONtoDictionary node:
 text3 - Note cute JSON (only for note and bomb events):
+
+## Other events
+```_lum_bs_menu``` - Triggers when a song ends by any means and the player returns to the menu.
+This will be triggered in addition to fail or quit events if that is how the song ended.
+No data is sent with this event
 
 ## Connection status triggers
 ```_lum_bs_connected``` - Called upon successful connection to Beat Saber  
