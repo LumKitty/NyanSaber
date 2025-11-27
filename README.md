@@ -53,8 +53,8 @@ num1 - Current combo
 num2 - Current missed note count  
 num3 - Current score (only for note and bomb events)  
 text1 - Current rank  
-text2 - Performance JSON, compatible with JSONtoDictionary node:
-text3 - Note cute JSON (only for note and bomb events):
+text2 - Performance JSON, compatible with JSONtoDictionary node. 
+text3 - Note cute JSON (only for note and bomb events). 
 
 ## Other events
 ```_lum_bs_menu``` - Triggers when a song ends by any means and the player returns to the menu.
@@ -77,7 +77,7 @@ text1 = Websocket URL
 ```_lum_bs_connect``` - Disconnect from HTTPSiraStatus or abort an ongoing connection attempt  
 
 ## Events that are filtered by default
-These events are disabled by default, but can be enabled by editing the BlockedEvents setting in NyanSaber.cfg
+These events are disabled by default, but can be enabled by editing the BlockedEvents setting in NyanSaber.cfg  
 ```_lum_bs_beatmap``` - Triggered by lighting events in the map. May get very spammy and cause performance issues  
 num1 - Event version (can be either 2 or 3 depending on what the song uses)  
 num2 - Type. See the [HTTPSiraStatus documentation](https://github.com/denpadokei/HttpSiraStatus/blob/master/protocol.md#beatmap-event-object) for details  
