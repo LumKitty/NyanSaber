@@ -5,7 +5,7 @@ It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKi
 ## Installation and usage
 Install to VNyan in the usual way, by copying the included DLLs to VNyan\Items\Assemblies  
 Don't forget to enable third party plugins in VNyan: Menu -> Settings -> Misc -> Additional Settings -> Allow third party mods/plugins
-Requires [HTTPSiraStatus](https://github.com/denpadokei/HttpSiraStatus)  
+Requires [HTTPSiraStatus](https://github.com/denpadokei/HttpSiraStatus) or [BeatSaber HTTP Status](https://github.com/opl-/beatsaber-http-status)  
 Once Beat Saber is running, click the "NyanSaber" button from VNyan plugins menu to connect to Beat Saber. Click it again to abort or disconnect. 
 Alternatively use the connection control triggers documented below:  
 
