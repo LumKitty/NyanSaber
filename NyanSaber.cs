@@ -18,7 +18,7 @@ namespace NyanSaber {
 
     public class NyanSaber : IVNyanPluginManifest, ITriggerHandler, IButtonClickedHandler {
         public string PluginName { get; } = "NyanSaber";
-        public string Version { get; } = "0.7-beta";
+        public string Version { get; } = "0.8-beta";
         public string Title { get; } = "Nyan Saber";
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
@@ -46,6 +46,7 @@ namespace NyanSaber {
         private static int LogLevel = 1;
 
         public void InitializePlugin() {
+            Log("NyanSaber v" + Version + " starting");
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("NyanSaber", this);
             LoadPluginSettings();
@@ -315,16 +316,21 @@ namespace NyanSaber {
         }
 
         private static string BSColorToHex(JArray Colors) {
-            if (Colors != null) {
-                if (LogLevel >= 4) {
-                    Log("Colours: " + Colors.ToString());
-                    Log(Colors[0].ToString());
-                    Log(Colors[1].ToString());
-                    Log(Colors[2].ToString());
+            try {
+                if (!Colors.IsNull()) {
+                    if (LogLevel >= 4) {
+                        Log("Colours: " + Colors.ToString());
+                        Log(Colors[0].ToString());
+                        Log(Colors[1].ToString());
+                        Log(Colors[2].ToString());
+                    }
+                    return ((int)Colors[0]).ToString("X2") + ((int)Colors[1]).ToString("X2") + ((int)Colors[2]).ToString("X2");
+                } else {
+                    return (string)"";
                 }
-                return ((int)Colors[0]).ToString("X2") + ((int)Colors[1]).ToString("X2") + ((int)Colors[2]).ToString("X2");
-            } else {
-                return "";
+            } catch (Exception e) {
+                ErrorHandler(e);
+                return (string)"";
             }
         }
 
@@ -597,14 +603,21 @@ namespace NyanSaber {
                     JObject TempColors = (JObject)Song["color"];
 
                     JObject Colors = new JObject(
-                        new JProperty("sabera", BSColorToHex((JArray)TempColors["saberA"])),
+                        /*new JProperty("sabera", BSColorToHex((JArray)TempColors["saberA"])),
                         new JProperty("saberb", BSColorToHex((JArray)TempColors["saberB"])),
                         new JProperty("obstacle", BSColorToHex((JArray)TempColors["obstacle"])),
                         new JProperty("environment0", BSColorToHex((JArray)TempColors["environment0"])),
                         new JProperty("environment1", BSColorToHex((JArray)TempColors["environment1"])),
                         new JProperty("environment0boost", BSColorToHex((JArray)TempColors["environment0Boost"])),
-                        new JProperty("environment1boost", BSColorToHex((JArray)TempColors["environment1Boost"]))
+                        new JProperty("environment1boost", BSColorToHex((JArray)TempColors["environment1Boost"]))*/
                     );
+                    if (!TempColors["saberA"].IsNull()) { Colors.Add(new JProperty("sabera", BSColorToHex((JArray)TempColors["saberA"]))); }
+                    if (!TempColors["saberB"].IsNull()) { Colors.Add(new JProperty("saberb", BSColorToHex((JArray)TempColors["saberB"]))); }
+                    if (!TempColors["obstacle"].IsNull()) { Colors.Add(new JProperty("obstacle", BSColorToHex((JArray)TempColors["obstacle"]))); }
+                    if (!TempColors["environment0"].IsNull()) { Colors.Add(new JProperty("environment0", BSColorToHex((JArray)TempColors["environment0"]))); }
+                    if (!TempColors["environment1"].IsNull()) { Colors.Add(new JProperty("environment1", BSColorToHex((JArray)TempColors["environment1"]))); }
+                    if (!TempColors["environment0Boost"].IsNull()) { Colors.Add(new JProperty("environment0boost", BSColorToHex((JArray)TempColors["environment0Boost"]))); }
+                    if (!TempColors["environment1Boost"].IsNull()) { Colors.Add(new JProperty("environment1boost", BSColorToHex((JArray)TempColors["environment1Boost"]))); }
 
                     int Seconds = (int)Song["length"] / 1000;
                     int Minutes = (int)Math.Floor((decimal)(Seconds / 60));
