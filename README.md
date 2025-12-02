@@ -14,7 +14,7 @@ Alternatively use the connection control triggers documented below:
 After first use, NyanSaber.cfg will appear in your VNyan profile directory (default: C:\Users\You\AppData\LocalLow\Suvidriel\VNyan)  
 ```URL``` - URL for connecting to Beat Saber  
 ```RetryInterval``` - How long to wait between retries in milliseconds (default: 1000, i.e. 1 second)  
-```MaxRetries"``` - Number of retry attempts (default: 5)  
+```MaxRetries``` - Number of retry attempts (default: 5)  
 ```RetryOnDisconnect``` - Auto reconnect if disconnected from Beat Saber (default: false)  
 ```LogLevel``` - Can be set from 1-4.  
 0 - Basic connection and startup info only  
@@ -55,7 +55,7 @@ num2 - Current missed note count
 num3 - Current score (only for note and bomb events)  
 text1 - Current rank  
 text2 - Performance JSON, compatible with JSONtoDictionary node. 
-text3 - Note cute JSON (only for note and bomb events). 
+text3 - Note cut JSON (only for note and bomb events). 
 
 ## Other events
 ```_lum_bs_menu``` - Triggers when a song ends by any means and the player returns to the menu.
