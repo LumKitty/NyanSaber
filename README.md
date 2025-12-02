@@ -1,7 +1,7 @@
 # NyanSaber - VNyan integration with HTTPSiraStatus (and BS HTTP Status)
 ![Demonstration of a VTuber model changing colour in response to the note colours in Beat Saber](https://github.com/LumKitty/NyanSaber/blob/master/NyanSaberDemo.gif?raw=true)  
 This plugin allows VNyan nodegraphs to react to events in Beat Saber such as song start, end and fail. It also provides information about the song.
-It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games
+It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games, but can also be used standalone
 
 ## Installation and usage
 Install to VNyan in the usual way, by copying the included DLLs to VNyan\Items\Assemblies  
