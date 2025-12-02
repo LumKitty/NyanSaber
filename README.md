@@ -1,4 +1,4 @@
-# VNyan integration with HTTPSiraStatus
+# NyanSaber - VNyan integration with HTTPSiraStatus (and BS HTTP Status)
 ![Demonstration of a VTuber model changing colour in response to the note colours in Beat Saber](https://github.com/LumKitty/NyanSaber/blob/master/NyanSaberDemo.gif?raw=true)
 This plugin allows VNyan nodegraphs to react to events in Beat Saber such as song start, end and fail. It also provides information about the song.
 It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games
@@ -88,6 +88,7 @@ text2 - Previous beatmap event details for same type
 text3 - Next beatmap event details for same type  
 WARNING: This trigger contains raw data which can vary by event type. I am not a Beat Saber lighter, and don't know what most of it does.
 Someone more experienced than me could probably make a VNyan world that reacts to these events, but I am not going to!  
+NOTE: Only works with HTTP Sira Status
 
 ```_lum_bs_notefullycut``` - Performance Event fired a few frames after a Notecut Event with additional info  
 ```_lum_bs_notemisseddetails``` - Preformance Event fired a few frames after a note is missed, with additional info  
