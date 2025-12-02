@@ -54,7 +54,7 @@ num1 - Current combo
 num2 - Current missed note count  
 num3 - Current score (only for note and bomb events)  
 text1 - Current rank  
-text2 - Performance JSON, compatible with JSONtoDictionary node. 
+text2 - Performance JSON, compatible with JSONtoDictionary node.  
 text3 - Note cut JSON (only for note and bomb events). 
 
 ## Other events
