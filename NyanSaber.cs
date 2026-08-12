@@ -18,15 +18,16 @@ namespace NyanSaber {
 
     public class NyanSaber : IVNyanPluginManifest, ITriggerHandler, IButtonClickedHandler {
         public string PluginName { get; } = "NyanSaber";
-        public string Version { get; } = "0.8-beta";
+        public string Version { get; } = "1.0";
         public string Title { get; } = "Nyan Saber";
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
         private const string SettingsFileName = "NyanSaber.cfg";
 
         private static WatsonWsClient? client = null;
-        private static bool Connecting = false;
-        private static bool DisconnectRequested = false;
+        internal static bool Connecting = false;
+        internal static bool DisconnectRequested = false;
+        internal static bool Connected = false;
         private static int MaxScore = 0;
         private static int Combo = 0;
 
@@ -220,14 +221,15 @@ namespace NyanSaber {
             }
         }
         public void pluginButtonClicked() {
-            if (client == null) {
+            NyanSaber_GUI.SetActive(true);
+            /*if (client == null) {
                 Task.Run(() => ConnectBS());
             } else {
                 Task.Run(() => DisconnectBS());
-            }
+            }*/
         }
 
-        private static async void ConnectBS() {
+        internal static async void ConnectBS() {
             try {
                 if (!Connecting && client == null) {
                     Connecting = true;
@@ -280,7 +282,7 @@ namespace NyanSaber {
             }
         }
 
-        private static async void DisconnectBS() {
+        internal static async void DisconnectBS() {
             if (Connecting) {
                 DisconnectRequested = true;
                 Log("Requesting disconnect");
@@ -289,6 +291,7 @@ namespace NyanSaber {
                 client.ServerDisconnected -= ServerDisconnected;
                 client.Stop();
                 client = null;
+                Connected = false;
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_bs_connected", 0);
                 CallVNyan("_lum_bs_disconnected", 0, 0, 0, "", "", "");
             } else {
@@ -726,12 +729,14 @@ namespace NyanSaber {
 
         static async void ServerConnected(object sender, EventArgs args) {
             Log("Server connected");
+            Connected = true;
             VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_bs_connected", 1);
             CallVNyan("_lum_bs_connected",0,0,0,"","","");
         }
 
         static async void ServerDisconnected(object sender, EventArgs args) {
             Log("Server disconnected");
+            Connected = false;
             client = null;
             VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_bs_connected", 0);
             CallVNyan("_lum_bs_disconnected", 1, 0, 0, "", "", "");
