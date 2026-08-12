@@ -1,6 +1,7 @@
-# VNyan integration with HTTPSiraStatus
+# NyanSaber - VNyan integration with HTTPSiraStatus (and BS HTTP Status)
+![Demonstration of a VTuber model changing colour in response to the note colours in Beat Saber](https://github.com/LumKitty/NyanSaber/blob/master/NyanSaberDemo.gif?raw=true)  
 This plugin allows VNyan nodegraphs to react to events in Beat Saber such as song start, end and fail. It also provides information about the song.
-It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games
+It is intended to be used in conjunction with [LIVnyan](https://github.com/LumKitty/LIVnyan), my plugin for using VNyan as your model renderer in VR games, but can also be used standalone
 
 ## Installation and usage
 Install to VNyan in the usual way, by copying the included DLLs to VNyan\Items\Assemblies  
@@ -13,7 +14,7 @@ Alternatively use the connection control triggers documented below:
 After first use, NyanSaber.cfg will appear in your VNyan profile directory (default: C:\Users\You\AppData\LocalLow\Suvidriel\VNyan)  
 ```URL``` - URL for connecting to Beat Saber  
 ```RetryInterval``` - How long to wait between retries in milliseconds (default: 1000, i.e. 1 second)  
-```MaxRetries"``` - Number of retry attempts (default: 5)  
+```MaxRetries``` - Number of retry attempts (default: 5)  
 ```RetryOnDisconnect``` - Auto reconnect if disconnected from Beat Saber (default: false)  
 ```LogLevel``` - Can be set from 1-4.  
 0 - Basic connection and startup info only  
@@ -53,8 +54,8 @@ num1 - Current combo
 num2 - Current missed note count  
 num3 - Current score (only for note and bomb events)  
 text1 - Current rank  
-text2 - Performance JSON, compatible with JSONtoDictionary node. 
-text3 - Note cute JSON (only for note and bomb events). 
+text2 - Performance JSON, compatible with JSONtoDictionary node.  
+text3 - Note cut JSON (only for note and bomb events). 
 
 ## Other events
 ```_lum_bs_menu``` - Triggers when a song ends by any means and the player returns to the menu.
@@ -87,6 +88,7 @@ text2 - Previous beatmap event details for same type
 text3 - Next beatmap event details for same type  
 WARNING: This trigger contains raw data which can vary by event type. I am not a Beat Saber lighter, and don't know what most of it does.
 Someone more experienced than me could probably make a VNyan world that reacts to these events, but I am not going to!  
+NOTE: Only works with HTTP Sira Status
 
 ```_lum_bs_notefullycut``` - Performance Event fired a few frames after a Notecut Event with additional info  
 ```_lum_bs_notemisseddetails``` - Preformance Event fired a few frames after a note is missed, with additional info  
