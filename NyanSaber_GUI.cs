@@ -6,7 +6,7 @@ using UnityEngine;
 namespace NyanSaber {
     internal class NyanSaber_GUI : MonoBehaviour {
         internal const string CloseTriggerName = "____bottom_right_gui";
-        internal const string CloseTriggerValue = "uk.lum.vrcftnyan";
+        internal const string CloseTriggerValue = "uk.lum.nyansaber";
 
         private const int DWidth = 213;
         private const int DHeight = 400;
