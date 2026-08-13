@@ -202,6 +202,7 @@ namespace NyanSaber {
             VNyanInterface.VNyanInterface.VNyanTrigger.callTrigger(TriggerName, int1, int2, int3, text1, text2, text3);
         }
         public void triggerCalled(string name, int num1, int num2, int num3, string text1, string text2, string text3) {
+            if (name == NyanSaber_GUI.CloseTriggerName && text1 != NyanSaber_GUI.CloseTriggerValue) { NyanSaber_GUI.SetActive(false); }
             if (name.Length > 8) {
                 name = name.ToLower();
                 if (name.Substring(0, 8) == "_lum_bs_") {
